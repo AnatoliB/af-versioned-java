@@ -43,12 +43,7 @@ public class MyOrchestration {
     @FunctionName("Cities")
     public String citiesOrchestrator(
             @DurableOrchestrationTrigger(name = "ctx") TaskOrchestrationContext ctx) {
-        String result = "";
-        result += ctx.callActivity("Capitalize", "Tokyo", String.class).await() + ", ";
-        result += ctx.callActivity("Capitalize", "London", String.class).await() + ", ";
-        result += ctx.callActivity("Capitalize", "Seattle", String.class).await() + ", ";
-        result += ctx.callActivity("Capitalize", "Austin", String.class).await();
-        return result;
+        return ctx.getVersion();
     }
 
     /**
