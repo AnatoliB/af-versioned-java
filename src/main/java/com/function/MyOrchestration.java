@@ -2,6 +2,8 @@ package com.function;
 
 import com.microsoft.azure.functions.annotation.*;
 import com.microsoft.azure.functions.*;
+
+import java.time.Duration;
 import java.util.*;
 
 import com.microsoft.durabletask.*;
@@ -43,7 +45,20 @@ public class MyOrchestration {
     @FunctionName("Cities")
     public String citiesOrchestrator(
             @DurableOrchestrationTrigger(name = "ctx") TaskOrchestrationContext ctx) {
-        return ctx.getVersion();
+        ctx.setCustomStatus("Waiting for approval...");
+        Duration timeout = Duration.ofHours(72);
+        ctx.waitForExternalEvent("Continue", timeout, boolean.class).await();
+        ctx.setCustomStatus("Approved");
+
+        String subVersion = ctx.callSubOrchestrator("SubOrchestrator", null, String.class).await();
+
+        return "Version: " + ctx.getVersion() + ", SubVersion: " + subVersion;
+    }
+
+    @FunctionName("SubOrchestrator")
+    public String subOrchestrator(
+            @DurableOrchestrationTrigger(name = "ctx") TaskOrchestrationContext ctx) {
+        return "SubVersion: " + ctx.getVersion();
     }
 
     /**
