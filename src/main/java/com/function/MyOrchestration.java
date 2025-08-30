@@ -33,7 +33,8 @@ public class MyOrchestration {
         context.getLogger().info("Java HTTP trigger processed a request.");
  
         DurableTaskClient client = durableContext.getClient();
-        String instanceId = client.scheduleNewOrchestrationInstance("Cities");
+        NewOrchestrationInstanceOptions options = new NewOrchestrationInstanceOptions().setVersion("1.0");
+        String instanceId = client.scheduleNewOrchestrationInstance("Cities", options);
         context.getLogger().info("Created new Java orchestration with instance ID = " + instanceId);
         return durableContext.createCheckStatusResponse(request, instanceId);
     }
@@ -52,13 +53,17 @@ public class MyOrchestration {
 
         String subVersion = ctx.callSubOrchestrator("SubOrchestrator", null, String.class).await();
 
+        // NewSubOrchestrationInstanceOptions options = new NewSubOrchestrationInstanceOptions((RetryPolicy)null);
+        // options.setVersion("1.0");
+        // String subVersion = ctx.callSubOrchestrator("SubOrchestrator", null, null, options, String.class).await();
+
         return "Version: " + ctx.getVersion() + ", SubVersion: " + subVersion;
     }
 
     @FunctionName("SubOrchestrator")
     public String subOrchestrator(
             @DurableOrchestrationTrigger(name = "ctx") TaskOrchestrationContext ctx) {
-        return "SubVersion: " + ctx.getVersion();
+        return ctx.getVersion();
     }
 
     /**
